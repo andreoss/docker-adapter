@@ -61,7 +61,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>asto</artifactId>
-      <version>v1.3.0</version>
+      <version>v1.3.2</version>
     </dependency>
     <dependency>
       <groupId>org.cactoos</groupId>
@@ -79,7 +79,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>http-client</artifactId>
-      <version>0.3.5</version>
+      <version>0.3.6</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
