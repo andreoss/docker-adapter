@@ -36,8 +36,8 @@ class JsonManifestTest {
             "{\"mediaType\":\"something\"}".getBytes()
         );
         MatcherAssert.assertThat(
-            manifest.mediaType(),
-            new IsEqual<>("something")
+            manifest.mediaTypes(),
+            Matchers.contains("something")
         );
     }
 
@@ -49,7 +49,7 @@ class JsonManifestTest {
         );
         Assertions.assertThrows(
             InvalidManifestException.class,
-            manifest::mediaType
+            manifest::mediaTypes
         );
     }
 
@@ -72,6 +72,21 @@ class JsonManifestTest {
         );
         MatcherAssert.assertThat(
             manifest.convert(Collections.singletonList("*/*")),
+            new IsEqual<>(manifest)
+        );
+    }
+
+    @Test
+    void shouldConvertForMultiType() {
+        final JsonManifest manifest = new JsonManifest(
+            new Digest.Sha256("qwe"),
+            // @checkstyle LineLengthCheck (1 line)
+            "{\"mediaType\":\"application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json,application/vnd.docker.distribution.manifest.v1+json,application/vnd.docker.distribution.manifest.list.v2+json\"}".getBytes()
+        );
+        MatcherAssert.assertThat(
+            manifest.convert(
+                Collections.singletonList("application/vnd.docker.distribution.manifest.v2+json")
+            ),
             new IsEqual<>(manifest)
         );
     }

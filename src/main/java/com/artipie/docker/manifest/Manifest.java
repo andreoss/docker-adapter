@@ -7,6 +7,7 @@ package com.artipie.docker.manifest;
 import com.artipie.asto.Content;
 import com.artipie.docker.Digest;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Image manifest.
@@ -17,11 +18,11 @@ import java.util.Collection;
 public interface Manifest {
 
     /**
-     * Read manifest type.
+     * Read manifest types.
      *
      * @return Type string.
      */
-    String mediaType();
+    Set<String> mediaTypes();
 
     /**
      * Converts manifest to one of types.
@@ -65,4 +66,15 @@ public interface Manifest {
      * @return Size of the manifest.
      */
     long size();
+
+    /**
+     * Read manifest first media type.
+     * @return First media type in a collection
+     * @deprecated Use {@link #mediaTypes()} instead, this method
+     *  will be removed in next major release.
+     */
+    @Deprecated
+    default String mediaType() {
+        return this.mediaTypes().iterator().next();
+    }
 }

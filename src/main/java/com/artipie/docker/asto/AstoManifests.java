@@ -154,7 +154,7 @@ public final class AstoManifests implements Manifests {
                 Stream.of(
                     CompletableFuture.runAsync(
                         () -> {
-                            if (manifest.mediaType().isEmpty()) {
+                            if (manifest.mediaTypes().isEmpty()) {
                                 throw new InvalidManifestException(
                                     "Required field `mediaType` is empty"
                                 );

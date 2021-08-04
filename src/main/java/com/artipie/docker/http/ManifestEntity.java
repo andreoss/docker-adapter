@@ -348,7 +348,7 @@ final class ManifestEntity {
             super(
                 new RsWithHeaders(
                     StandardRs.EMPTY,
-                    new ContentType(mnf.mediaType()),
+                    new ContentType(String.join(",", mnf.mediaTypes())),
                     new DigestHeader(mnf.digest())
                 )
             );

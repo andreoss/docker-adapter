@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -51,20 +52,29 @@ public final class JsonManifest implements Manifest {
     }
 
     @Override
-    public String mediaType() {
-        return Optional.ofNullable(this.json().getString("mediaType", null))
-            .orElseThrow(
-                () -> new InvalidManifestException("Required field `mediaType` is absent")
-            );
+    public Set<String> mediaTypes() {
+        return Collections.unmodifiableSet(
+            Arrays.asList(
+                Optional.ofNullable(this.json().getString("mediaType", null))
+                    .orElseThrow(
+                        () -> new InvalidManifestException(
+                            "Required field `mediaType` is absent"
+                        )
+                    ).split(",")
+            ).stream().filter(type -> !type.isEmpty()).collect(Collectors.toSet())
+        );
     }
 
     @Override
     public Manifest convert(final Collection<String> options) {
         if (!options.contains("*/*")) {
-            final String type = this.mediaType();
-            if (!options.contains(type)) {
+            final Set<String> types = this.mediaTypes();
+            if (types.stream().noneMatch(type -> options.contains(type))) {
                 throw new IllegalArgumentException(
-                    String.format("Cannot convert from '%s' to any of '%s'", type, options)
+                    String.format(
+                        "Cannot convert from '%s' to any of '%s'",
+                        String.join(",", types), options
+                    )
                 );
             }
         }
