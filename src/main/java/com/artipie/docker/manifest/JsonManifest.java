@@ -66,7 +66,7 @@ public final class JsonManifest implements Manifest {
     }
 
     @Override
-    public Manifest convert(final Collection<String> options) {
+    public Manifest convert(final Set<? extends String> options) {
         if (!options.contains("*/*")) {
             final Set<String> types = this.mediaTypes();
             if (types.stream().noneMatch(type -> options.contains(type))) {

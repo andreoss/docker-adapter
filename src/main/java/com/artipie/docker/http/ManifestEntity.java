@@ -9,7 +9,6 @@ import com.artipie.docker.Docker;
 import com.artipie.docker.RepoName;
 import com.artipie.docker.error.ManifestError;
 import com.artipie.docker.manifest.Manifest;
-import com.artipie.docker.misc.AcceptHeader;
 import com.artipie.docker.misc.RqByRegex;
 import com.artipie.docker.ref.ManifestRef;
 import com.artipie.http.Response;
@@ -18,6 +17,7 @@ import com.artipie.http.auth.AuthScheme;
 import com.artipie.http.auth.AuthSlice;
 import com.artipie.http.auth.Permission;
 import com.artipie.http.auth.Permissions;
+import com.artipie.http.headers.Accept;
 import com.artipie.http.headers.ContentLength;
 import com.artipie.http.headers.ContentType;
 import com.artipie.http.headers.Location;
@@ -27,8 +27,8 @@ import com.artipie.http.rs.RsWithHeaders;
 import com.artipie.http.rs.RsWithStatus;
 import com.artipie.http.rs.StandardRs;
 import java.nio.ByteBuffer;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 import org.reactivestreams.Publisher;
 
@@ -91,7 +91,9 @@ final class ManifestEntity {
                 this.docker.repo(request.name()).manifests().get(ref).thenApply(
                     manifest -> manifest.<Response>map(
                         found -> new RsWithHeaders(
-                            new BaseResponse(found.convert(Head.acceptHeader(headers))),
+                            new BaseResponse(
+                                found.convert(new HashSet<>(new Accept(headers).values()))
+                            ),
                             new ContentLength(found.size())
                         )
                     ).orElseGet(
@@ -99,15 +101,6 @@ final class ManifestEntity {
                     )
                 )
             );
-        }
-
-        /**
-         * Gets accept header.
-         * @param headers Request headers
-         * @return Accept headers
-         */
-        private static Set<String> acceptHeader(final Iterable<Map.Entry<String, String>> headers) {
-            return new AcceptHeader(headers).values();
         }
     }
 
@@ -150,7 +143,9 @@ final class ManifestEntity {
                 this.docker.repo(name).manifests().get(ref).thenApply(
                     manifest -> manifest.<Response>map(
                         found -> {
-                            final Manifest mnf = found.convert(Head.acceptHeader(headers));
+                            final Manifest mnf = found.convert(
+                                new HashSet<>(new Accept(headers).values())
+                            );
                             return new RsWithBody(new BaseResponse(mnf), mnf.content());
                         }
                     ).orElseGet(

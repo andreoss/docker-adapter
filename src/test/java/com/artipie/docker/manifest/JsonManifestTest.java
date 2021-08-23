@@ -10,6 +10,8 @@ import com.artipie.docker.error.InvalidManifestException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.json.Json;
@@ -60,7 +62,7 @@ class JsonManifestTest {
             "{\"mediaType\":\"type2\"}".getBytes()
         );
         MatcherAssert.assertThat(
-            manifest.convert(Arrays.asList("type1", "type2")),
+            manifest.convert(hashSet("type1", "type2")),
             new IsEqual<>(manifest)
         );
     }
@@ -71,7 +73,7 @@ class JsonManifestTest {
             new Digest.Sha256("123"), "{\"mediaType\":\"my-type\"}".getBytes()
         );
         MatcherAssert.assertThat(
-            manifest.convert(Collections.singletonList("*/*")),
+            manifest.convert(hashSet("*/*")),
             new IsEqual<>(manifest)
         );
     }
@@ -85,7 +87,7 @@ class JsonManifestTest {
         );
         MatcherAssert.assertThat(
             manifest.convert(
-                Collections.singletonList("application/vnd.docker.distribution.manifest.v2+json")
+                hashSet("application/vnd.docker.distribution.manifest.v2+json")
             ),
             new IsEqual<>(manifest)
         );
@@ -203,5 +205,14 @@ class JsonManifestTest {
             new PublisherAs(manifest.content()).bytes().toCompletableFuture().join(),
             new IsEqual<>(data)
         );
+    }
+
+    /**
+     * Create new set from items.
+     * @param items Items
+     * @return Unmodifiable hash set
+     */
+    private static Set<? extends String> hashSet(final String... items) {
+        return Collections.unmodifiableSet(new HashSet<>(Arrays.asList(items)));
     }
 }

@@ -7,6 +7,8 @@ package com.artipie.docker.manifest;
 import com.artipie.asto.Content;
 import com.artipie.docker.Digest;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -30,7 +32,7 @@ public interface Manifest {
      * @param options Types the manifest may be converted to.
      * @return Converted manifest.
      */
-    Manifest convert(Collection<String> options);
+    Manifest convert(Set<? extends String> options);
 
     /**
      * Read config digest.
@@ -76,5 +78,18 @@ public interface Manifest {
     @Deprecated
     default String mediaType() {
         return this.mediaTypes().iterator().next();
+    }
+
+    /**
+     * Converts manifest to one of types.
+     *
+     * @param options Types the manifest may be converted to.
+     * @return Converted manifest.
+     * @deprecated Use {@link #convert(Set)} instead, this method
+     *  will be removed in next major release.
+     */
+    @Deprecated
+    default Manifest convert(List<String> options) {
+        return this.convert(new HashSet<>(options));
     }
 }
