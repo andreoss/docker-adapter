@@ -74,7 +74,7 @@ SOFTWARE.
     <dependency>
       <groupId>com.artipie</groupId>
       <artifactId>http</artifactId>
-      <version>v0.22</version>
+      <version>v0.25</version>
     </dependency>
     <dependency>
       <groupId>com.artipie</groupId>

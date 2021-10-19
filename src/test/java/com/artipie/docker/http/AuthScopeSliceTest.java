@@ -50,7 +50,7 @@ class AuthScopeSliceTest {
                     return StandardRs.OK;
                 }
             },
-            (AuthScheme) headers -> CompletableFuture.completedFuture(
+            (headers, rline) -> CompletableFuture.completedFuture(
                 new AuthScheme.Result() {
                     @Override
                     public Optional<Authentication.User> user() {
