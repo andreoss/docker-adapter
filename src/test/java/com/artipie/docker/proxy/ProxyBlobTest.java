@@ -12,13 +12,16 @@ import com.artipie.http.Headers;
 import com.artipie.http.headers.ContentLength;
 import com.artipie.http.rs.RsFull;
 import com.artipie.http.rs.RsStatus;
+import com.artipie.http.rs.common.RsError;
 import io.reactivex.Flowable;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.core.IsEqual;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -135,5 +138,22 @@ class ProxyBlobTest {
             new Digest.FromString("sha256:987"),
             data.length
         ).content().toCompletableFuture().join();
+    }
+
+    @Test
+    void shouldHandleStatus() {
+        final byte[] data = "content".getBytes();
+        final CompletableFuture<Content> content = new ProxyBlob(
+            (line, headers, body) -> new RsError(
+                new IllegalArgumentException()
+            ),
+            new RepoName.Valid("test"),
+            new Digest.FromString("sha256:567"),
+            data.length
+        ).content().toCompletableFuture();
+        Assertions.assertThrows(
+            CompletionException.class,
+            content::join
+        );
     }
 }
