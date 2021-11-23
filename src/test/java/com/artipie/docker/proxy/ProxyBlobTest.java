@@ -113,6 +113,23 @@ class ProxyBlobTest {
         );
     }
 
+    @Test
+    void shouldHandleStatus() {
+        final byte[] data = "content".getBytes();
+        final CompletableFuture<Content> content = new ProxyBlob(
+            (line, headers, body) -> new RsError(
+                new IllegalArgumentException()
+            ),
+            new RepoName.Valid("test-2"),
+            new Digest.FromString("sha256:567"),
+            data.length
+        ).content().toCompletableFuture();
+        Assertions.assertThrows(
+            CompletionException.class,
+            content::join
+        );
+    }
+
     private Content captureConnectionAccept(
         final AtomicReference<CompletionStage<Void>> capture,
         final boolean failure
@@ -138,22 +155,5 @@ class ProxyBlobTest {
             new Digest.FromString("sha256:987"),
             data.length
         ).content().toCompletableFuture().join();
-    }
-
-    @Test
-    void shouldHandleStatus() {
-        final byte[] data = "content".getBytes();
-        final CompletableFuture<Content> content = new ProxyBlob(
-            (line, headers, body) -> new RsError(
-                new IllegalArgumentException()
-            ),
-            new RepoName.Valid("test"),
-            new Digest.FromString("sha256:567"),
-            data.length
-        ).content().toCompletableFuture();
-        Assertions.assertThrows(
-            CompletionException.class,
-            content::join
-        );
     }
 }
