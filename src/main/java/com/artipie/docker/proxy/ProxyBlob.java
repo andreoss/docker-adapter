@@ -5,14 +5,17 @@
 package com.artipie.docker.proxy;
 
 import com.artipie.asto.Content;
+import com.artipie.asto.FailedCompletionStage;
 import com.artipie.docker.Blob;
 import com.artipie.docker.Digest;
 import com.artipie.docker.RepoName;
+import com.artipie.http.ArtipieHttpException;
 import com.artipie.http.Headers;
 import com.artipie.http.Slice;
 import com.artipie.http.headers.ContentLength;
 import com.artipie.http.rq.RequestLine;
 import com.artipie.http.rq.RqMethod;
+import com.artipie.http.rs.RsStatus;
 import io.reactivex.Flowable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -21,10 +24,6 @@ import java.util.concurrent.CompletionStage;
  * Proxy implementation of {@link Blob}.
  *
  * @since 0.3
- * @todo #170:30min Handle response status in `ProxyBlob.content()` method.
- *  When response is received from remote repository the status might be not OK
- *  in case the blob is missing or some internal error occurred. Content should be returned
- *  only if OK status came in response.
  */
 public final class ProxyBlob implements Blob {
 
@@ -88,16 +87,27 @@ public final class ProxyBlob implements Blob {
             Flowable.empty()
         ).send(
             (status, headers, body) -> {
-                final CompletableFuture<Void> terminated = new CompletableFuture<>();
-                result.complete(
-                    new Content.From(
-                        new ContentLength(headers).longValue(),
-                        Flowable.fromPublisher(body)
-                            .doOnError(terminated::completeExceptionally)
-                            .doOnTerminate(() -> terminated.complete(null))
-                    )
-                );
-                return terminated;
+                final CompletableFuture<Void> sent;
+                if (status == RsStatus.OK) {
+                    final CompletableFuture<Void> terminated = new CompletableFuture<>();
+                    result.complete(
+                        new Content.From(
+                            new ContentLength(headers).longValue(),
+                            Flowable.fromPublisher(body)
+                                .doOnError(terminated::completeExceptionally)
+                                .doOnTerminate(() -> terminated.complete(null))
+                        )
+                    );
+                    sent = terminated;
+                } else {
+                    sent = new FailedCompletionStage<Void>(
+                        new ArtipieHttpException(
+                            status,
+                            String.format("Unexpected status: %s", status)
+                        )
+                    ).toCompletableFuture();
+                }
+                return sent;
             }
         ).handle(
             (nothing, throwable) -> {
