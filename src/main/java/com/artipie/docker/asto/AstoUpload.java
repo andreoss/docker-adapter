@@ -93,7 +93,7 @@ public final class AstoUpload implements Upload {
     public CompletionStage<Long> append(final Content chunk) {
         return this.chunks().thenCompose(
             chunks -> {
-                if (chunks.size() > 0) {
+                if (!chunks.isEmpty()) {
                     throw new UnsupportedOperationException("Multiple chunks are not supported");
                 }
                 final Key tmp = new Key.From(this.root(), UUID.randomUUID().toString());
