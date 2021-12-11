@@ -54,6 +54,7 @@ public final class DockerSlice extends Slice.Wrap {
      * @param perms Access permissions.
      * @param auth Authentication scheme.
      */
+    @SuppressWarnings("PMD.ExcessiveMethodLength")
     public DockerSlice(final Docker docker, final Permissions perms, final AuthScheme auth) {
         super(
             new ErrorHandlingSlice(
@@ -136,6 +137,13 @@ public final class DockerSlice extends Slice.Wrap {
                             ByMethodsRule.Standard.GET
                         ),
                         auth(new UploadEntity.Get(docker), perms, auth)
+                    ),
+                    new RtRulePath(
+                        new RtRule.All(
+                            new RtRule.ByPath(UploadEntity.PATH),
+                            ByMethodsRule.Standard.DELETE
+                        ),
+                        auth(new UploadEntity.Delete(docker), perms, auth)
                     ),
                     new RtRulePath(
                         new RtRule.All(

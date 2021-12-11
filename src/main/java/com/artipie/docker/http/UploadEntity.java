@@ -49,6 +49,11 @@ public final class UploadEntity {
     );
 
     /**
+     * Upload UUID Header.
+     */
+    private static final String UPLOAD_UUID = "Docker-Upload-UUID";
+
+    /**
      * Ctor.
      */
     private UploadEntity() {
@@ -291,7 +296,7 @@ public final class UploadEntity {
                                     new RsWithStatus(RsStatus.NO_CONTENT),
                                     new ContentLength("0"),
                                     new Header("Range", String.format("0-%d", offset)),
-                                    new Header("Docker-Upload-UUID", uuid)
+                                    new Header(UploadEntity.UPLOAD_UUID, uuid)
                                 )
                             )
                         )
@@ -427,7 +432,7 @@ public final class UploadEntity {
                 ),
                 new Header("Range", String.format("0-%d", this.offset)),
                 new ContentLength("0"),
-                new Header("Docker-Upload-UUID", this.uuid)
+                new Header(UploadEntity.UPLOAD_UUID, this.uuid)
             ).send(connection);
         }
     }
@@ -452,6 +457,61 @@ public final class UploadEntity {
                     new Location(String.format("/v2/%s/blobs/%s", name.value(), digest.string())),
                     new ContentLength("0"),
                     new DigestHeader(digest)
+                )
+            );
+        }
+    }
+
+    /**
+     * Slice for DELETE method.
+     *
+     * @since 0.16
+     */
+    public static final class Delete implements ScopeSlice {
+
+        /**
+         * Docker repository.
+         */
+        private final Docker docker;
+
+        /**
+         * Ctor.
+         *
+         * @param docker Docker repository.
+         */
+        Delete(final Docker docker) {
+            this.docker = docker;
+        }
+
+        @Override
+        public Scope scope(final String line) {
+            return new Scope.Repository.Pull(new Request(line).name());
+        }
+
+        @Override
+        public Response response(
+            final String line,
+            final Iterable<Map.Entry<String, String>> headers,
+            final Publisher<ByteBuffer> body
+        ) {
+            final Request request = new Request(line);
+            final RepoName name = request.name();
+            final String uuid = request.uuid();
+            return new AsyncResponse(
+                this.docker.repo(name).uploads().get(uuid).thenApply(
+                    found -> found.<Response>map(
+                        upload -> new AsyncResponse(
+                            upload.cancel().thenApply(
+                                offset -> new RsWithHeaders(
+                                    new RsWithStatus(RsStatus.OK),
+                                    new ContentLength("0"),
+                                    new Header(UploadEntity.UPLOAD_UUID, uuid)
+                                )
+                            )
+                        )
+                    ).orElseGet(
+                        () -> new ErrorsResponse(RsStatus.NOT_FOUND, new UploadUnknownError(uuid))
+                    )
                 )
             );
         }
