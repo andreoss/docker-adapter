@@ -30,6 +30,13 @@ public interface Upload {
     CompletionStage<Void> start();
 
     /**
+     * Cancel upload.
+     *
+     * @return Completion or error signal.
+     */
+    CompletionStage<Void> cancel();
+
+    /**
      * Appends a chunk of data to upload.
      *
      * @param chunk Chunk of data.

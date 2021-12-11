@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
  *
  * @since 0.2
  */
+@SuppressWarnings("PMD.TooManyMethods")
 public final class AstoUpload implements Upload {
 
     /**
@@ -78,6 +79,14 @@ public final class AstoUpload implements Upload {
     @Override
     public CompletionStage<Void> start() {
         return this.storage.save(this.started(), new Content.From(new byte[0]));
+    }
+
+    @Override
+    public CompletionStage<Void> cancel() {
+        final Key key = this.started();
+        return this.storage
+            .exists(key)
+            .thenCompose(found -> this.storage.delete(key));
     }
 
     @Override
