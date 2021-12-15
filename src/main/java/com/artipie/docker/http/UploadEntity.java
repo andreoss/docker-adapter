@@ -8,6 +8,7 @@ import com.artipie.docker.Digest;
 import com.artipie.docker.Docker;
 import com.artipie.docker.Repo;
 import com.artipie.docker.RepoName;
+import com.artipie.docker.Upload;
 import com.artipie.docker.error.UploadUnknownError;
 import com.artipie.docker.misc.RqByRegex;
 import com.artipie.http.Connection;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import org.reactivestreams.Publisher;
 
@@ -498,18 +500,19 @@ public final class UploadEntity {
             final RepoName name = request.name();
             final String uuid = request.uuid();
             return new AsyncResponse(
-                this.docker.repo(name).uploads().get(uuid).thenApply(
-                    found -> found.<Response>map(
-                        upload -> new AsyncResponse(
+                this.docker.repo(name).uploads().get(uuid).thenCompose(
+                    x -> x.map(
+                        (Function<Upload, CompletionStage<? extends Response>>) upload ->
                             upload.cancel().thenApply(
                                 offset -> new RsWithHeaders(
                                     new RsWithStatus(RsStatus.OK),
                                     new Header(UploadEntity.UPLOAD_UUID, uuid)
                                 )
                             )
+                    ).orElse(
+                        CompletableFuture.completedFuture(
+                            new ErrorsResponse(RsStatus.NOT_FOUND, new UploadUnknownError(uuid))
                         )
-                    ).orElseGet(
-                        () -> new ErrorsResponse(RsStatus.NOT_FOUND, new UploadUnknownError(uuid))
                     )
                 )
             );
