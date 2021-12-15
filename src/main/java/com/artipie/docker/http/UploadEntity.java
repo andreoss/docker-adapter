@@ -504,7 +504,6 @@ public final class UploadEntity {
                             upload.cancel().thenApply(
                                 offset -> new RsWithHeaders(
                                     new RsWithStatus(RsStatus.OK),
-                                    new ContentLength("0"),
                                     new Header(UploadEntity.UPLOAD_UUID, uuid)
                                 )
                             )

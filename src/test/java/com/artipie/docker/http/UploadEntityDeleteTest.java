@@ -63,7 +63,6 @@ final class UploadEntityDeleteTest {
             get,
             new ResponseMatcher(
                 RsStatus.OK,
-                new Header("Content-Length", "0"),
                 new Header("Docker-Upload-UUID", upload.uuid())
             )
         );
